@@ -74,6 +74,8 @@ public class KeycloakAuthenticatedActionsFilter extends GenericFilterBean implem
             throws IOException, ServletException {
 
         HttpFacade facade = new SimpleHttpFacade((HttpServletRequest)request, (HttpServletResponse)response);
+        // using Spring authenticationFailureHandler
+        deployment.setContainerErrorPage(false);
         AuthenticatedActionsHandler handler = new AuthenticatedActionsHandler(deploymentContext.resolveDeployment(facade), (OIDCHttpFacade)facade);
         boolean handled = handler.handledRequest();
         if (handled) {
