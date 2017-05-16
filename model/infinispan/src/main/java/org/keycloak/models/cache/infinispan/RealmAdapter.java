@@ -222,6 +222,18 @@ public class RealmAdapter implements CachedRealmModel {
     }
 
     @Override
+    public boolean isPermanentLockout() {
+        if(isUpdated()) return updated.isPermanentLockout();
+        return cached.isPermanentLockout();
+    }
+
+    @Override
+    public void setPermanentLockout(final boolean val) {
+        getDelegateForUpdate();
+        updated.setPermanentLockout(val);
+    }
+
+    @Override
     public int getMaxFailureWaitSeconds() {
         if (isUpdated()) return updated.getMaxFailureWaitSeconds();
         return cached.getMaxFailureWaitSeconds();
@@ -460,6 +472,30 @@ public class RealmAdapter implements CachedRealmModel {
     public void setAccessCodeLifespanLogin(int seconds) {
         getDelegateForUpdate();
         updated.setAccessCodeLifespanLogin(seconds);
+    }
+
+    @Override
+    public int getActionTokenGeneratedByAdminLifespan() {
+        if (isUpdated()) return updated.getActionTokenGeneratedByAdminLifespan();
+        return cached.getActionTokenGeneratedByAdminLifespan();
+    }
+
+    @Override
+    public void setActionTokenGeneratedByAdminLifespan(int seconds) {
+        getDelegateForUpdate();
+        updated.setActionTokenGeneratedByAdminLifespan(seconds);
+    }
+
+    @Override
+    public int getActionTokenGeneratedByUserLifespan() {
+        if (isUpdated()) return updated.getActionTokenGeneratedByUserLifespan();
+        return cached.getActionTokenGeneratedByUserLifespan();
+    }
+
+    @Override
+    public void setActionTokenGeneratedByUserLifespan(int seconds) {
+        getDelegateForUpdate();
+        updated.setActionTokenGeneratedByUserLifespan(seconds);
     }
 
     @Override

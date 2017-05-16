@@ -437,9 +437,6 @@ module.controller('ClientCertificateImportCtrl', function($scope, $location, $ht
             }).success(function(data, status, headers) {
                 Notifications.success("Keystore uploaded successfully.");
                 $location.url(redirectLocation);
-            }).error(function(data) {
-                var errorMsg = data['error_description'] ? data['error_description'] : 'The key store can not be uploaded. Please verify the file.';
-                Notifications.error(errorMsg);
             });
             //.then(success, error, progress);
         }
@@ -1111,6 +1108,12 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, templates,
         } else if ($scope.clientEdit.bearerOnly) {
             $scope.clientEdit.serviceAccountsEnabled = false;
         }
+        if ($scope.client.authorizationServicesEnabled && !$scope.clientEdit.authorizationServicesEnabled) {
+            Dialog.confirm("Disable Authorization Settings", "Are you sure you want to disable authorization ? Once you save your changes, all authorization settings associated with this client will be removed. This operation can not be reverted.", function () {
+            }, function () {
+                $scope.clientEdit.authorizationServicesEnabled = true;
+            });
+        }
     }
 
     $scope.$watch('clientEdit', function() {
@@ -1223,12 +1226,6 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, templates,
             }, $scope.clientEdit, function() {
                 $route.reload();
                 Notifications.success("Your changes have been saved to the client.");
-            }, function(error) {
-                if (error.status == 400 && error.data.error_description) {
-                    Notifications.error(error.data.error_description);
-                } else {
-                    Notifications.error('Unexpected error when updating client');
-                }
             });
         }
     };
@@ -1240,15 +1237,6 @@ module.controller('ClientDetailCtrl', function($scope, realm, client, templates,
     $scope.cancel = function() {
         $location.url("/realms/" + realm.realm + "/clients");
     };
-
-    $scope.onAuthorizationSettingsChange = function () {
-        if ($scope.client.authorizationServicesEnabled && !$scope.clientEdit.authorizationServicesEnabled) {
-            Dialog.confirm("Disable Authorization Settings", "Are you sure you want to disable authorization ? Once you save your changes, all authorization settings associated with this client will be removed. This operation can not be reverted.", function () {
-            }, function () {
-                $scope.clientEdit.authorizationServicesEnabled = true;
-            });
-        }
-    }
 });
 
 module.controller('CreateClientCtrl', function($scope, realm, client, templates, $route, serverInfo, Client, ClientDescriptionConverter, $location, $modal, Dialog, Notifications) {
@@ -1351,12 +1339,6 @@ module.controller('CreateClientCtrl', function($scope, realm, client, templates,
             var id = l.substring(l.lastIndexOf("/") + 1);
             $location.url("/realms/" + realm.realm + "/clients/" + id);
             Notifications.success("The client has been created.");
-        }, function(error) {
-            if (error.status == 400 && error.data.error_description) {
-                Notifications.error(error.data.error_description);
-            } else {
-                Notifications.error('Unexpected error when creating client');
-            }
         });
     };
 
@@ -1821,12 +1803,6 @@ module.controller('ClientProtocolMapperCtrl', function($scope, realm, serverInfo
             mapper = angular.copy($scope.mapper);
             $location.url("/realms/" + realm.realm + '/clients/' + client.id + "/mappers/" + $scope.model.mapper.id);
             Notifications.success("Your changes have been saved.");
-        }, function(error) {
-            if (error.status == 400 && error.data.error_description) {
-                Notifications.error(error.data.error_description);
-            } else {
-                Notifications.error('Unexpected error when updating protocol mapper');
-            }
         });
     };
 
@@ -1893,14 +1869,6 @@ module.controller('ClientProtocolMapperCreateCtrl', function($scope, realm, serv
             var id = l.substring(l.lastIndexOf("/") + 1);
             $location.url("/realms/" + realm.realm + '/clients/' + client.id + "/mappers/" + id);
             Notifications.success("Mapper has been created.");
-        }, function(error) {
-            if (error.status == 400 && error.data.error_description) {
-                Notifications.error(error.data.error_description);
-            } else if (error.status == 409 && error.data.errorMessage) {
-                Notifications.error(error.data.errorMessage);
-            } else {
-                Notifications.error('Unexpected error when updating protocol mapper');
-            }
         });
     };
 

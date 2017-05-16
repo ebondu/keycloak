@@ -1044,6 +1044,8 @@ module.controller('RealmTokenDetailCtrl', function($scope, Realm, realm, $http, 
     $scope.realm.accessCodeLifespan = TimeUnit2.asUnit(realm.accessCodeLifespan);
     $scope.realm.accessCodeLifespanLogin = TimeUnit2.asUnit(realm.accessCodeLifespanLogin);
     $scope.realm.accessCodeLifespanUserAction = TimeUnit2.asUnit(realm.accessCodeLifespanUserAction);
+    $scope.realm.actionTokenGeneratedByAdminLifespan = TimeUnit2.asUnit(realm.actionTokenGeneratedByAdminLifespan);
+    $scope.realm.actionTokenGeneratedByUserLifespan = TimeUnit2.asUnit(realm.actionTokenGeneratedByUserLifespan);
 
     var oldCopy = angular.copy($scope.realm);
     $scope.changed = false;
@@ -1063,6 +1065,8 @@ module.controller('RealmTokenDetailCtrl', function($scope, Realm, realm, $http, 
         $scope.realm.accessCodeLifespan = $scope.realm.accessCodeLifespan.toSeconds();
         $scope.realm.accessCodeLifespanUserAction = $scope.realm.accessCodeLifespanUserAction.toSeconds();
         $scope.realm.accessCodeLifespanLogin = $scope.realm.accessCodeLifespanLogin.toSeconds();
+        $scope.realm.actionTokenGeneratedByAdminLifespan = $scope.realm.actionTokenGeneratedByAdminLifespan.toSeconds();
+        $scope.realm.actionTokenGeneratedByUserLifespan = $scope.realm.actionTokenGeneratedByUserLifespan.toSeconds();
 
         Realm.update($scope.realm, function () {
             $route.reload();
@@ -1220,10 +1224,6 @@ module.controller('GenericKeystoreCtrl', function($scope, $location, Notificatio
 
                 $location.url("/realms/" + realm.realm + "/keys/providers/" + $scope.instance.providerId + "/" + id);
                 Notifications.success("The provider has been created.");
-            }, function (errorResponse) {
-                if (errorResponse.data && errorResponse.data['error_description']) {
-                    Notifications.error(errorResponse.data['error_description']);
-                }
             });
         } else {
             Components.update({realm: realm.realm,
@@ -1232,10 +1232,6 @@ module.controller('GenericKeystoreCtrl', function($scope, $location, Notificatio
                 $scope.instance,  function () {
                     $route.reload();
                     Notifications.success("The provider has been updated.");
-                }, function (errorResponse) {
-                    if (errorResponse.data && errorResponse.data['error_description']) {
-                        Notifications.error(errorResponse.data['error_description']);
-                    }
                 });
         }
     };
@@ -2463,10 +2459,6 @@ module.controller('ClientRegPolicyDetailCtrl', function($scope, realm, clientReg
                 var id = l.substring(l.lastIndexOf("/") + 1);
                 $location.url("/realms/" + realm.realm + "/client-registration/client-reg-policies/" + $scope.instance.providerId + "/" + id);
                 Notifications.success("The policy has been created.");
-            }, function (errorResponse) {
-                if (errorResponse.data && errorResponse.data['error_description']) {
-                    Notifications.error(errorResponse.data['error_description']);
-                }
             });
         } else {
             Components.update({realm: realm.realm,
@@ -2475,10 +2467,6 @@ module.controller('ClientRegPolicyDetailCtrl', function($scope, realm, clientReg
                 $scope.instance,  function () {
                     $route.reload();
                     Notifications.success("The policy has been updated.");
-                }, function (errorResponse) {
-                    if (errorResponse.data && errorResponse.data['error_description']) {
-                        Notifications.error(errorResponse.data['error_description']);
-                    }
                 });
         }
     };

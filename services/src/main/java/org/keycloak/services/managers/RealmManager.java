@@ -47,6 +47,7 @@ import org.keycloak.representations.idm.OAuthClientRepresentation;
 import org.keycloak.representations.idm.RealmEventsConfigRepresentation;
 import org.keycloak.representations.idm.RealmRepresentation;
 import org.keycloak.representations.idm.RoleRepresentation;
+import org.keycloak.sessions.AuthenticationSessionProvider;
 import org.keycloak.storage.UserStorageProviderModel;
 import org.keycloak.services.clientregistration.policy.DefaultClientRegistrationPolicies;
 
@@ -213,6 +214,7 @@ public class RealmManager {
 
         // brute force
         realm.setBruteForceProtected(false); // default settings off for now todo set it on
+        realm.setPermanentLockout(false);
         realm.setMaxFailureWaitSeconds(900);
         realm.setMinimumQuickLoginWaitSeconds(60);
         realm.setWaitIncrementSeconds(60);
@@ -245,6 +247,11 @@ public class RealmManager {
             UserSessionPersisterProvider sessionsPersister = session.getProvider(UserSessionPersisterProvider.class);
             if (sessionsPersister != null) {
                 sessionsPersister.onRealmRemoved(realm);
+            }
+
+            AuthenticationSessionProvider authSessions = session.authenticationSessions();
+            if (authSessions != null) {
+                authSessions.onRealmRemoved(realm);
             }
 
           // Refresh periodic sync tasks for configured storageProviders

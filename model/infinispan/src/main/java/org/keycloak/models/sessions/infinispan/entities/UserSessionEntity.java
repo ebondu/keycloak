@@ -21,6 +21,8 @@ import org.keycloak.models.UserSessionModel;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * @author <a href="mailto:sthorger@redhat.com">Stian Thorgersen</a>
@@ -44,11 +46,11 @@ public class UserSessionEntity extends SessionEntity {
 
     private int lastSessionRefresh;
 
-    private Set<String> clientSessions;
-
     private UserSessionModel.State state;
 
-    private Map<String, String> notes;
+    private Map<String, String> notes = new ConcurrentHashMap<>();
+
+    private Map<String, AuthenticatedClientSessionEntity> authenticatedClientSessions;
 
     public String getUser() {
         return user;
@@ -106,20 +108,20 @@ public class UserSessionEntity extends SessionEntity {
         this.lastSessionRefresh = lastSessionRefresh;
     }
 
-    public Set<String> getClientSessions() {
-        return clientSessions;
-    }
-
-    public void setClientSessions(Set<String> clientSessions) {
-        this.clientSessions = clientSessions;
-    }
-
     public Map<String, String> getNotes() {
         return notes;
     }
 
     public void setNotes(Map<String, String> notes) {
         this.notes = notes;
+    }
+
+    public Map<String, AuthenticatedClientSessionEntity> getAuthenticatedClientSessions() {
+        return authenticatedClientSessions;
+    }
+
+    public void setAuthenticatedClientSessions(Map<String, AuthenticatedClientSessionEntity> authenticatedClientSessions) {
+        this.authenticatedClientSessions = authenticatedClientSessions;
     }
 
     public UserSessionModel.State getState() {

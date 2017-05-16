@@ -28,6 +28,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
+import javax.ws.rs.core.Response;
+
 import org.jboss.arquillian.container.test.api.Deployer;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.junit.BeforeClass;
@@ -103,7 +105,7 @@ public abstract class AbstractServletAuthzAdapterTest extends AbstractExampleAda
         return getClientResource(RESOURCE_SERVER_ID).authorization();
     }
 
-    private ClientResource getClientResource(String clientId) {
+    protected ClientResource getClientResource(String clientId) {
         ClientsResource clients = this.realmsResouce().realm(REALM_NAME).clients();
         ClientRepresentation resourceServer = clients.findByClientId(clientId).get(0);
         return clients.get(resourceServer.getId());
@@ -199,7 +201,8 @@ public abstract class AbstractServletAuthzAdapterTest extends AbstractExampleAda
 
         assertFalse(policy.getUsers().isEmpty());
 
-        getAuthorizationResource().policies().users().create(policy);
+        Response response = getAuthorizationResource().policies().user().create(policy);
+        response.close();
     }
 
     protected interface ExceptionRunnable {

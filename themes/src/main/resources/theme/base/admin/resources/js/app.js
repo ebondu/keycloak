@@ -1943,9 +1943,13 @@ module.factory('errorInterceptor', function($q, $window, $rootScope, $location, 
             } else if (response.status) {
                 if (response.data && response.data.errorMessage) {
                     Notifications.error(response.data.errorMessage);
+                } else if (response.data && response.data.error_description) {
+                    Notifications.error(response.data.error_description);
                 } else {
                     Notifications.error("An unexpected server error has occurred");
                 }
+            } else {
+                Notifications.error("No response from server.");
             }
             return $q.reject(response);
         }
@@ -2168,14 +2172,28 @@ module.directive('kcEnter', function() {
     };
 });
 
-module.directive('kcSave', function ($compile, Notifications) {
+module.directive('kcSave', function ($compile, $timeout, Notifications) {
+    var clickDelay = 500; // 500 ms
+    
     return {
         restrict: 'A',
         link: function ($scope, elem, attr, ctrl) {
             elem.addClass("btn btn-primary");
             elem.attr("type","submit");
-            elem.bind('click', function() {
+            
+            var disabled = false;
+            elem.on('click', function(evt) {
                 if ($scope.hasOwnProperty("changed") && !$scope.changed) return;
+                
+                // KEYCLOAK-4121: Prevent double form submission
+                if (disabled) {
+                    evt.preventDefault();
+                    evt.stopImmediatePropagation();
+                    return;
+                } else {
+                    disabled = true;
+                    $timeout(function () { disabled = false; }, clickDelay, false);
+                }
                 
                 $scope.$apply(function() {
                     var form = elem.closest('form');

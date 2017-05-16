@@ -141,6 +141,7 @@ public class RepresentationToModel {
         if (rep.getDisplayNameHtml() != null) newRealm.setDisplayNameHtml(rep.getDisplayNameHtml());
         if (rep.isEnabled() != null) newRealm.setEnabled(rep.isEnabled());
         if (rep.isBruteForceProtected() != null) newRealm.setBruteForceProtected(rep.isBruteForceProtected());
+        if (rep.isPermanentLockout() != null) newRealm.setPermanentLockout(rep.isPermanentLockout());
         if (rep.getMaxFailureWaitSeconds() != null) newRealm.setMaxFailureWaitSeconds(rep.getMaxFailureWaitSeconds());
         if (rep.getMinimumQuickLoginWaitSeconds() != null)
             newRealm.setMinimumQuickLoginWaitSeconds(rep.getMinimumQuickLoginWaitSeconds());
@@ -187,6 +188,14 @@ public class RepresentationToModel {
         if (rep.getAccessCodeLifespanLogin() != null)
             newRealm.setAccessCodeLifespanLogin(rep.getAccessCodeLifespanLogin());
         else newRealm.setAccessCodeLifespanLogin(1800);
+
+        if (rep.getActionTokenGeneratedByAdminLifespan() != null)
+            newRealm.setActionTokenGeneratedByAdminLifespan(rep.getActionTokenGeneratedByAdminLifespan());
+        else newRealm.setActionTokenGeneratedByAdminLifespan(12 * 60 * 60);
+
+        if (rep.getActionTokenGeneratedByUserLifespan() != null)
+            newRealm.setActionTokenGeneratedByUserLifespan(rep.getActionTokenGeneratedByUserLifespan());
+        else newRealm.setActionTokenGeneratedByUserLifespan(newRealm.getAccessCodeLifespanUserAction());
 
         if (rep.getSslRequired() != null)
             newRealm.setSslRequired(SslRequired.valueOf(rep.getSslRequired().toUpperCase()));
@@ -787,6 +796,7 @@ public class RepresentationToModel {
         if (rep.getDisplayNameHtml() != null) realm.setDisplayNameHtml(rep.getDisplayNameHtml());
         if (rep.isEnabled() != null) realm.setEnabled(rep.isEnabled());
         if (rep.isBruteForceProtected() != null) realm.setBruteForceProtected(rep.isBruteForceProtected());
+        if (rep.isPermanentLockout() != null) realm.setPermanentLockout(rep.isPermanentLockout());
         if (rep.getMaxFailureWaitSeconds() != null) realm.setMaxFailureWaitSeconds(rep.getMaxFailureWaitSeconds());
         if (rep.getMinimumQuickLoginWaitSeconds() != null)
             realm.setMinimumQuickLoginWaitSeconds(rep.getMinimumQuickLoginWaitSeconds());
@@ -810,6 +820,10 @@ public class RepresentationToModel {
             realm.setAccessCodeLifespanUserAction(rep.getAccessCodeLifespanUserAction());
         if (rep.getAccessCodeLifespanLogin() != null)
             realm.setAccessCodeLifespanLogin(rep.getAccessCodeLifespanLogin());
+        if (rep.getActionTokenGeneratedByAdminLifespan() != null)
+            realm.setActionTokenGeneratedByAdminLifespan(rep.getActionTokenGeneratedByAdminLifespan());
+        if (rep.getActionTokenGeneratedByUserLifespan() != null)
+            realm.setActionTokenGeneratedByUserLifespan(rep.getActionTokenGeneratedByUserLifespan());
         if (rep.getNotBefore() != null) realm.setNotBefore(rep.getNotBefore());
         if (rep.getRevokeRefreshToken() != null) realm.setRevokeRefreshToken(rep.getRevokeRefreshToken());
         if (rep.getAccessTokenLifespan() != null) realm.setAccessTokenLifespan(rep.getAccessTokenLifespan());

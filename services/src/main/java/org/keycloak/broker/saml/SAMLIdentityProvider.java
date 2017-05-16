@@ -31,7 +31,6 @@ import org.keycloak.dom.saml.v2.assertion.SubjectType;
 import org.keycloak.dom.saml.v2.protocol.ResponseType;
 import org.keycloak.events.EventBuilder;
 import org.keycloak.keys.RsaKeyMetadata;
-import org.keycloak.models.ClientSessionModel;
 import org.keycloak.models.FederatedIdentityModel;
 import org.keycloak.models.KeyManager;
 import org.keycloak.models.KeycloakSession;
@@ -56,6 +55,7 @@ import java.util.TreeSet;
 import org.keycloak.dom.saml.v2.metadata.KeyTypes;
 import org.keycloak.keys.KeyMetadata;
 import org.keycloak.saml.processing.core.util.KeycloakKeySamlExtensionGenerator;
+import org.keycloak.sessions.AuthenticationSessionModel;
 
 /**
  * @author Pedro Igor
@@ -132,17 +132,17 @@ public class SAMLIdentityProvider extends AbstractIdentityProvider<SAMLIdentityP
     }
 
     @Override
-    public void attachUserSession(UserSessionModel userSession, ClientSessionModel clientSession, BrokeredIdentityContext context) {
+    public void authenticationFinished(AuthenticationSessionModel authSession, BrokeredIdentityContext context)  {
         ResponseType responseType = (ResponseType)context.getContextData().get(SAMLEndpoint.SAML_LOGIN_RESPONSE);
         AssertionType assertion = (AssertionType)context.getContextData().get(SAMLEndpoint.SAML_ASSERTION);
         SubjectType subject = assertion.getSubject();
         SubjectType.STSubType subType = subject.getSubType();
         NameIDType subjectNameID = (NameIDType) subType.getBaseID();
-        userSession.setNote(SAMLEndpoint.SAML_FEDERATED_SUBJECT, subjectNameID.getValue());
-        if (subjectNameID.getFormat() != null) userSession.setNote(SAMLEndpoint.SAML_FEDERATED_SUBJECT_NAMEFORMAT, subjectNameID.getFormat().toString());
+        authSession.setUserSessionNote(SAMLEndpoint.SAML_FEDERATED_SUBJECT, subjectNameID.getValue());
+        if (subjectNameID.getFormat() != null) authSession.setUserSessionNote(SAMLEndpoint.SAML_FEDERATED_SUBJECT_NAMEFORMAT, subjectNameID.getFormat().toString());
         AuthnStatementType authn =  (AuthnStatementType)context.getContextData().get(SAMLEndpoint.SAML_AUTHN_STATEMENT);
         if (authn != null && authn.getSessionIndex() != null) {
-            userSession.setNote(SAMLEndpoint.SAML_FEDERATED_SESSION_INDEX, authn.getSessionIndex());
+            authSession.setUserSessionNote(SAMLEndpoint.SAML_FEDERATED_SESSION_INDEX, authn.getSessionIndex());
 
         }
     }
@@ -236,6 +236,7 @@ public class SAMLIdentityProvider extends AbstractIdentityProvider<SAMLIdentityP
 
 
         boolean wantAuthnRequestsSigned = getConfig().isWantAuthnRequestsSigned();
+        boolean wantAssertionsSigned = getConfig().isWantAssertionsSigned();
         String entityId = getEntityId(uriInfo, realm);
         String nameIDPolicyFormat = getConfig().getNameIDPolicyFormat();
 
@@ -247,7 +248,7 @@ public class SAMLIdentityProvider extends AbstractIdentityProvider<SAMLIdentityP
         for (RsaKeyMetadata key : keys) {
             addKeyInfo(keysString, key, KeyTypes.SIGNING.value());
         }
-        String descriptor = SPMetadataDescriptor.getSPDescriptor(authnBinding, endpoint, endpoint, wantAuthnRequestsSigned, entityId, nameIDPolicyFormat, keysString.toString());
+        String descriptor = SPMetadataDescriptor.getSPDescriptor(authnBinding, endpoint, endpoint, wantAuthnRequestsSigned, wantAssertionsSigned, entityId, nameIDPolicyFormat, keysString.toString());
         return Response.ok(descriptor, MediaType.APPLICATION_XML_TYPE).build();
     }
 

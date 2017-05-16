@@ -279,6 +279,16 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     }
 
     @Override
+    public boolean isPermanentLockout() {
+        return getAttribute("permanentLockout", false);
+    }
+
+    @Override
+    public void setPermanentLockout(final boolean val) {
+        setAttribute("permanentLockout", val);
+    }
+
+    @Override
     public int getMaxFailureWaitSeconds() {
         return getAttribute("maxFailureWaitSeconds", 0);
     }
@@ -500,6 +510,26 @@ public class RealmAdapter implements RealmModel, JpaModel<RealmEntity> {
     public void setAccessCodeLifespanLogin(int accessCodeLifespanLogin) {
         realm.setAccessCodeLifespanLogin(accessCodeLifespanLogin);
         em.flush();
+    }
+
+    @Override
+    public int getActionTokenGeneratedByAdminLifespan() {
+        return getAttribute(RealmAttributes.ACTION_TOKEN_GENERATED_BY_ADMIN_LIFESPAN, 12 * 60 * 60);
+    }
+
+    @Override
+    public void setActionTokenGeneratedByAdminLifespan(int actionTokenGeneratedByAdminLifespan) {
+        setAttribute(RealmAttributes.ACTION_TOKEN_GENERATED_BY_ADMIN_LIFESPAN, actionTokenGeneratedByAdminLifespan);
+    }
+
+    @Override
+    public int getActionTokenGeneratedByUserLifespan() {
+        return getAttribute(RealmAttributes.ACTION_TOKEN_GENERATED_BY_USER_LIFESPAN, getAccessCodeLifespanUserAction());
+    }
+
+    @Override
+    public void setActionTokenGeneratedByUserLifespan(int actionTokenGeneratedByUserLifespan) {
+        setAttribute(RealmAttributes.ACTION_TOKEN_GENERATED_BY_USER_LIFESPAN, actionTokenGeneratedByUserLifespan);
     }
 
     protected RequiredCredentialModel initRequiredCredentialModel(String type) {
