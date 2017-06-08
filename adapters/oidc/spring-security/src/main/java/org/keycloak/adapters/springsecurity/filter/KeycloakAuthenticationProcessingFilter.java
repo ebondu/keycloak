@@ -61,7 +61,7 @@ import org.springframework.util.Assert;
  * @version $Revision: 1 $
  */
 public class KeycloakAuthenticationProcessingFilter extends AbstractAuthenticationProcessingFilter implements ApplicationContextAware {
-    
+
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String SCHEME_BEARER = "bearer ";
     public static final String SCHEME_BASIC = "basic ";
@@ -138,20 +138,33 @@ public class KeycloakAuthenticationProcessingFilter extends AbstractAuthenticati
         log.debug("Auth outcome: {}", result);
 
         if (AuthOutcome.FAILED.equals(result)) {
-        	AuthChallenge challenge = authenticator.getChallenge();
+            AuthChallenge challenge = authenticator.getChallenge();
             if (challenge != null) {
                 challenge.challenge(facade);
             }
-            throw new KeycloakAuthenticationException("Invalid authorization header, see WWW-Authenticate header for details");
+            if (deployment.isBearerOnly()) {
+                // no redirection in this mode, throwing exception for the spring handler
+                throw new KeycloakAuthenticationException("Invalid authorization header, see WWW-Authenticate header for details");
+            } else {
+                // let continue if challenged, it may redirect
+                return null;
+            }
         }
+
         if (AuthOutcome.NOT_ATTEMPTED.equals(result)) {
-        	AuthChallenge challenge = authenticator.getChallenge();
+            AuthChallenge challenge = authenticator.getChallenge();
             if (challenge != null) {
                 challenge.challenge(facade);
             }
-            throw new KeycloakAuthenticationException("Authorization header not found, see WWW-Authenticate header");
+            if (deployment.isBearerOnly()) {
+                // no redirection in this mode, throwing exception for the spring handler
+                throw new KeycloakAuthenticationException("Authorization header not found,  see WWW-Authenticate header");
+            } else {
+                // let continue if challenged, it may redirect
+                return null;
+            }
         }
-       
+
         else if (AuthOutcome.AUTHENTICATED.equals(result)) {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             Assert.notNull(authentication, "Authentication SecurityContextHolder was null");
