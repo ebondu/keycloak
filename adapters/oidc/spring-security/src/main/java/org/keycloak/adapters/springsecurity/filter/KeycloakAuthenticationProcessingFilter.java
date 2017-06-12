@@ -67,9 +67,11 @@ public class KeycloakAuthenticationProcessingFilter extends AbstractAuthenticati
     public static final String SCHEME_BASIC = "basic ";
 
     /**
-     * Request matcher that matches all requests.
+     * Request matcher that matches requests to the {@link KeycloakAuthenticationEntryPoint#DEFAULT_LOGIN_URI default login URI}
+     * and any request with a <code>Authorization</code> header.
      */
-    private static RequestMatcher DEFAULT_REQUEST_MATCHER = new AntPathRequestMatcher("/**");
+    public static final RequestMatcher DEFAULT_REQUEST_MATCHER =
+            new OrRequestMatcher(new AntPathRequestMatcher(DEFAULT_LOGIN_URL), new RequestHeaderRequestMatcher(AUTHORIZATION_HEADER));
 
     private static final Logger log = LoggerFactory.getLogger(KeycloakAuthenticationProcessingFilter.class);
 
