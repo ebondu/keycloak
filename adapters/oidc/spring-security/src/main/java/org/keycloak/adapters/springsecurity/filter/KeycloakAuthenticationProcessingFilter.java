@@ -62,9 +62,11 @@ import org.springframework.util.Assert;
  */
 public class KeycloakAuthenticationProcessingFilter extends AbstractAuthenticationProcessingFilter implements ApplicationContextAware {
 
+    public static final String DEFAULT_LOGIN_URL = "/sso/login";
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String SCHEME_BEARER = "bearer ";
     public static final String SCHEME_BASIC = "basic ";
+
 
     /**
      * Request matcher that matches requests to the {@link KeycloakAuthenticationEntryPoint#DEFAULT_LOGIN_URI default login URI}
