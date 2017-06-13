@@ -146,13 +146,7 @@ public class KeycloakAuthenticationProcessingFilter extends AbstractAuthenticati
             if (challenge != null) {
                 challenge.challenge(facade);
             }
-            if (deployment.isBearerOnly()) {
-                // no redirection in this mode, throwing exception for the spring handler
-                throw new KeycloakAuthenticationException("Invalid authorization header, see WWW-Authenticate header for details");
-            } else {
-                // let continue if challenged, it may redirect
-                return null;
-            }
+            throw new KeycloakAuthenticationException("Invalid authorization header, see WWW-Authenticate header for details");
         }
 
         if (AuthOutcome.NOT_ATTEMPTED.equals(result)) {

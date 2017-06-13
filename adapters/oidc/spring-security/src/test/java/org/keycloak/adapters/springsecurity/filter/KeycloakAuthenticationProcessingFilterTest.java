@@ -159,12 +159,10 @@ public class KeycloakAuthenticationProcessingFilterTest {
         when(keycloakDeployment.getStateCookieName()).thenReturn("kc-cookie");
         when(keycloakDeployment.getSslRequired()).thenReturn(SslRequired.NONE);
         when(keycloakDeployment.isBearerOnly()).thenReturn(Boolean.FALSE);
-        try {
-        	filter.attemptAuthentication(request, response);
-        } catch (KeycloakAuthenticationException e) {
-        	verify(response).setStatus(302);
-            verify(response).setHeader(eq("Location"), startsWith("http://localhost:8080/auth"));
-        }
+
+        filter.attemptAuthentication(request, response);
+        verify(response).setStatus(302);
+        verify(response).setHeader(eq("Location"), startsWith("http://localhost:8080/auth"));
     }
 
     @Test(expected = KeycloakAuthenticationException.class)
