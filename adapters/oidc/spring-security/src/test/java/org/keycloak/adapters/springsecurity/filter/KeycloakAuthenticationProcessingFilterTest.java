@@ -171,6 +171,13 @@ public class KeycloakAuthenticationProcessingFilterTest {
         filter.attemptAuthentication(request, response);
     }
 
+    @Test(expected = KeycloakAuthenticationException.class)
+    public void testAttemptAuthenticationWithInvalidTokenBearerOnly() throws Exception {
+        when(keycloakDeployment.isBearerOnly()).thenReturn(Boolean.TRUE);
+        request.addHeader("Authorization", "Bearer xxx");
+        filter.attemptAuthentication(request, response);
+    }
+
     @Test
     public void testSuccessfulAuthenticationInteractive() throws Exception {
         Authentication authentication = new KeycloakAuthenticationToken(keycloakAccount, authorities);
