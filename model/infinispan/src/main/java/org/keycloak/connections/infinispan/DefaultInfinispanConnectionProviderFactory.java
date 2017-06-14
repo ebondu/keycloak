@@ -126,6 +126,16 @@ public class DefaultInfinispanConnectionProviderFactory implements InfinispanCon
             cacheManager.getCache(InfinispanConnectionProvider.KEYS_CACHE_NAME, true);
             cacheManager.getCache(InfinispanConnectionProvider.ACTION_TOKEN_CACHE, true);
 
+            long authzRevisionsMaxEntries = cacheManager.getCache(InfinispanConnectionProvider.AUTHORIZATION_CACHE_NAME).getCacheConfiguration().eviction().maxEntries();
+            authzRevisionsMaxEntries = authzRevisionsMaxEntries > 0
+                    ? 2 * authzRevisionsMaxEntries
+                    : InfinispanConnectionProvider.AUTHORIZATION_REVISIONS_CACHE_DEFAULT_MAX;
+
+            cacheManager.defineConfiguration(InfinispanConnectionProvider.AUTHORIZATION_REVISIONS_CACHE_NAME, getRevisionCacheConfig(authzRevisionsMaxEntries));
+            cacheManager.getCache(InfinispanConnectionProvider.AUTHORIZATION_REVISIONS_CACHE_NAME, true);
+
+
+
             logger.debugv("Using container managed Infinispan cache container, lookup={1}", cacheContainerLookup);
         } catch (Exception e) {
             throw new RuntimeException("Failed to retrieve cache container", e);
@@ -144,7 +154,8 @@ public class DefaultInfinispanConnectionProviderFactory implements InfinispanCon
 
         if (clustered) {
             String nodeName = config.get("nodeName", System.getProperty(InfinispanConnectionProvider.JBOSS_NODE_NAME));
-            configureTransport(gcb, nodeName);
+            String jgroupsUdpMcastAddr = config.get("jgroupsUdpMcastAddr", System.getProperty(InfinispanConnectionProvider.JGROUPS_UDP_MCAST_ADDR));
+            configureTransport(gcb, nodeName, jgroupsUdpMcastAddr);
         }
         gcb.globalJmxStatistics().allowDuplicateDomains(allowDuplicateJMXDomains);
 
@@ -157,6 +168,7 @@ public class DefaultInfinispanConnectionProviderFactory implements InfinispanCon
         Configuration modelCacheConfiguration = modelCacheConfigBuilder.build();
 
         cacheManager.defineConfiguration(InfinispanConnectionProvider.REALM_CACHE_NAME, modelCacheConfiguration);
+        cacheManager.defineConfiguration(InfinispanConnectionProvider.AUTHORIZATION_CACHE_NAME, modelCacheConfiguration);
         cacheManager.defineConfiguration(InfinispanConnectionProvider.USER_CACHE_NAME, modelCacheConfiguration);
 
         ConfigurationBuilder sessionConfigBuilder = new ConfigurationBuilder();
@@ -186,14 +198,12 @@ public class DefaultInfinispanConnectionProviderFactory implements InfinispanCon
         cacheManager.defineConfiguration(InfinispanConnectionProvider.SESSION_CACHE_NAME, sessionCacheConfiguration);
         cacheManager.defineConfiguration(InfinispanConnectionProvider.OFFLINE_SESSION_CACHE_NAME, sessionCacheConfiguration);
         cacheManager.defineConfiguration(InfinispanConnectionProvider.LOGIN_FAILURE_CACHE_NAME, sessionCacheConfiguration);
-        cacheManager.defineConfiguration(InfinispanConnectionProvider.AUTHORIZATION_CACHE_NAME, sessionCacheConfiguration);
         cacheManager.defineConfiguration(InfinispanConnectionProvider.AUTHENTICATION_SESSIONS_CACHE_NAME, sessionCacheConfiguration);
 
         // Retrieve caches to enforce rebalance
         cacheManager.getCache(InfinispanConnectionProvider.SESSION_CACHE_NAME, true);
         cacheManager.getCache(InfinispanConnectionProvider.OFFLINE_SESSION_CACHE_NAME, true);
         cacheManager.getCache(InfinispanConnectionProvider.LOGIN_FAILURE_CACHE_NAME, true);
-        cacheManager.getCache(InfinispanConnectionProvider.AUTHORIZATION_CACHE_NAME, true);
         cacheManager.getCache(InfinispanConnectionProvider.AUTHENTICATION_SESSIONS_CACHE_NAME, true);
 
         ConfigurationBuilder replicationConfigBuilder = new ConfigurationBuilder();
@@ -236,6 +246,14 @@ public class DefaultInfinispanConnectionProviderFactory implements InfinispanCon
 
         cacheManager.defineConfiguration(InfinispanConnectionProvider.ACTION_TOKEN_CACHE, getActionTokenCacheConfig());
         cacheManager.getCache(InfinispanConnectionProvider.ACTION_TOKEN_CACHE, true);
+
+        long authzRevisionsMaxEntries = cacheManager.getCache(InfinispanConnectionProvider.AUTHORIZATION_CACHE_NAME).getCacheConfiguration().eviction().maxEntries();
+        authzRevisionsMaxEntries = authzRevisionsMaxEntries > 0
+                ? 2 * authzRevisionsMaxEntries
+                : InfinispanConnectionProvider.AUTHORIZATION_REVISIONS_CACHE_DEFAULT_MAX;
+
+        cacheManager.defineConfiguration(InfinispanConnectionProvider.AUTHORIZATION_REVISIONS_CACHE_NAME, getRevisionCacheConfig(authzRevisionsMaxEntries));
+        cacheManager.getCache(InfinispanConnectionProvider.AUTHORIZATION_REVISIONS_CACHE_NAME, true);
     }
 
     private Configuration getRevisionCacheConfig(long maxEntries) {
@@ -300,24 +318,40 @@ public class DefaultInfinispanConnectionProviderFactory implements InfinispanCon
         return cb.build();
     }
 
-    protected void configureTransport(GlobalConfigurationBuilder gcb, String nodeName) {
+    private static final Object CHANNEL_INIT_SYNCHRONIZER = new Object();
+
+    protected void configureTransport(GlobalConfigurationBuilder gcb, String nodeName, String jgroupsUdpMcastAddr) {
         if (nodeName == null) {
             gcb.transport().defaultTransport();
         } else {
             FileLookup fileLookup = FileLookupFactory.newInstance();
 
-            try {
-                // Compatibility with Wildfly
-                JChannel channel = new JChannel(fileLookup.lookupFileLocation("default-configs/default-jgroups-udp.xml", this.getClass().getClassLoader()));
-                channel.setName(nodeName);
-                JGroupsTransport transport = new JGroupsTransport(channel);
+            synchronized (CHANNEL_INIT_SYNCHRONIZER) {
+                String originalMcastAddr = System.getProperty(InfinispanConnectionProvider.JGROUPS_UDP_MCAST_ADDR);
+                if (jgroupsUdpMcastAddr == null) {
+                    System.getProperties().remove(InfinispanConnectionProvider.JGROUPS_UDP_MCAST_ADDR);
+                } else {
+                    System.setProperty(InfinispanConnectionProvider.JGROUPS_UDP_MCAST_ADDR, jgroupsUdpMcastAddr);
+                }
+                try {
+                    // Compatibility with Wildfly
+                    JChannel channel = new JChannel(fileLookup.lookupFileLocation("default-configs/default-jgroups-udp.xml", this.getClass().getClassLoader()));
+                    channel.setName(nodeName);
+                    JGroupsTransport transport = new JGroupsTransport(channel);
 
-                gcb.transport().nodeName(nodeName);
-                gcb.transport().transport(transport);
+                    gcb.transport().nodeName(nodeName);
+                    gcb.transport().transport(transport);
 
-                logger.infof("Configured jgroups transport with the channel name: %s", nodeName);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+                    logger.infof("Configured jgroups transport with the channel name: %s", nodeName);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                } finally {
+                    if (originalMcastAddr == null) {
+                        System.getProperties().remove(InfinispanConnectionProvider.JGROUPS_UDP_MCAST_ADDR);
+                    } else {
+                        System.setProperty(InfinispanConnectionProvider.JGROUPS_UDP_MCAST_ADDR, originalMcastAddr);
+                    }
+                }
             }
         }
     }

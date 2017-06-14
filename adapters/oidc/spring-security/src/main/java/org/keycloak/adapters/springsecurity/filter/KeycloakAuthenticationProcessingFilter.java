@@ -32,6 +32,7 @@ import org.keycloak.adapters.spi.AuthChallenge;
 import org.keycloak.adapters.spi.AuthOutcome;
 import org.keycloak.adapters.spi.HttpFacade;
 import org.keycloak.adapters.springsecurity.KeycloakAuthenticationException;
+import org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationEntryPoint;
 import org.keycloak.adapters.springsecurity.authentication.KeycloakAuthenticationFailureHandler;
 import org.keycloak.adapters.springsecurity.authentication.SpringSecurityRequestAuthenticator;
 import org.keycloak.adapters.springsecurity.facade.SimpleHttpFacade;
@@ -54,6 +55,12 @@ import org.springframework.security.web.util.matcher.RequestHeaderRequestMatcher
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.Assert;
 
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
 /**
  * Provides a Keycloak authentication processing filter.
  *
@@ -66,7 +73,6 @@ public class KeycloakAuthenticationProcessingFilter extends AbstractAuthenticati
     public static final String AUTHORIZATION_HEADER = "Authorization";
     public static final String SCHEME_BEARER = "bearer ";
     public static final String SCHEME_BASIC = "basic ";
-
 
     /**
      * Request matcher that matches requests to the {@link KeycloakAuthenticationEntryPoint#DEFAULT_LOGIN_URI default login URI}
@@ -148,7 +154,6 @@ public class KeycloakAuthenticationProcessingFilter extends AbstractAuthenticati
             }
             throw new KeycloakAuthenticationException("Invalid authorization header, see WWW-Authenticate header for details");
         }
-
         if (AuthOutcome.NOT_ATTEMPTED.equals(result)) {
             AuthChallenge challenge = authenticator.getChallenge();
             if (challenge != null) {

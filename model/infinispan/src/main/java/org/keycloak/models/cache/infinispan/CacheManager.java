@@ -215,12 +215,12 @@ public abstract class CacheManager {
     }
 
 
-    protected void invalidationEventReceived(InvalidationEvent event) {
+    public void invalidationEventReceived(InvalidationEvent event) {
         Set<String> invalidations = new HashSet<>();
 
         addInvalidationsFromEvent(event, invalidations);
 
-        getLogger().debugf("Invalidating %d cache items after received event %s", invalidations.size(), event);
+        getLogger().debugf("[%s] Invalidating %d cache items after received event %s", cache.getCacheManager().getAddress(), invalidations.size(), event);
 
         for (String invalidation : invalidations) {
             invalidateObject(invalidation);

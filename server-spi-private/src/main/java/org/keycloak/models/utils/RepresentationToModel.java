@@ -151,6 +151,8 @@ public class RepresentationToModel {
         if (rep.getMaxDeltaTimeSeconds() != null) newRealm.setMaxDeltaTimeSeconds(rep.getMaxDeltaTimeSeconds());
         if (rep.getFailureFactor() != null) newRealm.setFailureFactor(rep.getFailureFactor());
         if (rep.isEventsEnabled() != null) newRealm.setEventsEnabled(rep.isEventsEnabled());
+        if (rep.getEnabledEventTypes() != null)
+            newRealm.setEnabledEventTypes(new HashSet<>(rep.getEnabledEventTypes()));
         if (rep.getEventsExpiration() != null) newRealm.setEventsExpiration(rep.getEventsExpiration());
         if (rep.getEventsListeners() != null) newRealm.setEventsListeners(new HashSet<>(rep.getEventsListeners()));
         if (rep.isAdminEventsEnabled() != null) newRealm.setAdminEventsEnabled(rep.isAdminEventsEnabled());
@@ -2110,7 +2112,7 @@ public class RepresentationToModel {
             }
         }
 
-        policy.getConfig().remove("scopes");
+        policy.removeConfig("scopes");
     }
 
     private static void updateAssociatedPolicies(Set<String> policyIds, Policy policy, StoreFactory storeFactory) {
@@ -2163,19 +2165,19 @@ public class RepresentationToModel {
             }
         }
 
-        policy.getConfig().remove("applyPolicies");
+        policy.removeConfig("applyPolicies");
     }
 
     private static void updateResources(Set<String> resourceIds, Policy policy, StoreFactory storeFactory) {
         if (resourceIds != null) {
             if (resourceIds.isEmpty()) {
-                for (Scope scope : new HashSet<Scope>(policy.getScopes())) {
-                    policy.removeScope(scope);
+                for (Resource resource : new HashSet<>(policy.getResources())) {
+                    policy.removeResource(resource);
                 }
             }
             for (String resourceId : resourceIds) {
                 boolean hasResource = false;
-                for (Resource resourceModel : new HashSet<Resource>(policy.getResources())) {
+                for (Resource resourceModel : new HashSet<>(policy.getResources())) {
                     if (resourceModel.getId().equals(resourceId) || resourceModel.getName().equals(resourceId)) {
                         hasResource = true;
                     }
@@ -2194,7 +2196,7 @@ public class RepresentationToModel {
                 }
             }
 
-            for (Resource resourceModel : new HashSet<Resource>(policy.getResources())) {
+            for (Resource resourceModel : new HashSet<>(policy.getResources())) {
                 boolean hasResource = false;
 
                 for (String resourceId : resourceIds) {
@@ -2209,7 +2211,7 @@ public class RepresentationToModel {
             }
         }
 
-        policy.getConfig().remove("resources");
+        policy.removeConfig("resources");
     }
 
     public static Resource toModel(ResourceRepresentation resource, ResourceServer resourceServer, AuthorizationProvider authorization) {

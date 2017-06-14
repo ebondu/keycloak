@@ -39,6 +39,8 @@ public interface InfinispanConnectionProvider extends Provider {
     String AUTHENTICATION_SESSIONS_CACHE_NAME = "authenticationSessions";
     String WORK_CACHE_NAME = "work";
     String AUTHORIZATION_CACHE_NAME = "authorization";
+    String AUTHORIZATION_REVISIONS_CACHE_NAME = "authorizationRevisions";
+    int AUTHORIZATION_REVISIONS_CACHE_DEFAULT_MAX = 20000;
 
     String ACTION_TOKEN_CACHE = "actionTokens";
     int ACTION_TOKEN_CACHE_DEFAULT_MAX = -1;
@@ -51,6 +53,7 @@ public interface InfinispanConnectionProvider extends Provider {
 
     // System property used on Wildfly to identify distributedCache address and sticky session route
     String JBOSS_NODE_NAME = "jboss.node.name";
+    String JGROUPS_UDP_MCAST_ADDR = "jgroups.udp.mcast_addr";
 
 
     <K, V> Cache<K, V> getCache(String name);

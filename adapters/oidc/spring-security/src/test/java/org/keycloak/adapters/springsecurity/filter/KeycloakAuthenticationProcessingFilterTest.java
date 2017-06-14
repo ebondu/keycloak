@@ -90,7 +90,7 @@ public class KeycloakAuthenticationProcessingFilterTest {
 
     @Mock
     private AuthenticationFailureHandler failureHandler;
-    
+
     private KeycloakAuthenticationFailureHandler keycloakFailureHandler;
 
     @Mock
@@ -233,13 +233,13 @@ public class KeycloakAuthenticationProcessingFilterTest {
         verify(failureHandler).onAuthenticationFailure(any(HttpServletRequest.class), any(HttpServletResponse.class),
                 any(AuthenticationException.class));
     }
-    
+
     @Test
     public void testDefaultFailureHanlder() throws Exception {
         AuthenticationException exception = new BadCredentialsException("OOPS");
         filter.setAuthenticationFailureHandler(keycloakFailureHandler);
         filter.unsuccessfulAuthentication(request, response, exception);
-        
+
         verify(response).sendError(eq(HttpServletResponse.SC_UNAUTHORIZED), any(String.class));
     }
 
